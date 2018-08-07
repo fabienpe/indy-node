@@ -99,7 +99,7 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
         }
         self.logger = logger
 
-        self.issuer_backend = None
+        self.issuer_backend = None  # type: BackendSystem
 
         self._invites = {}  # type: Dict[Nonce, Tuple(InternalId, str)]
         self._attribDefs = {}  # type: Dict[str, AttribDef]
@@ -445,7 +445,7 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
         body, (frm, ha) = msg
         link = self.wallet.getConnectionBy(nonce=body.get(NONCE))
         if link:
-            self.logger.info('Ping sent to %s', link.remoteIdentifier)
+            self.logger.info('Ping sent to {}'.format(link.remoteIdentifier))
             self.signAndSend({TYPE: 'pong'}, self.wallet.defaultId, frm,
                              origReqId=body.get(f.REQ_ID.nm))
 
@@ -455,7 +455,7 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
         if identifier:
             li = self._getLinkByTarget(getCryptonym(identifier))
             if li:
-                self.logger.info('Pong received from %s', li.remoteIdentifier)
+                self.logger.info('Pong received from {}'.format(li.remoteIdentifier))
                 self.notifyMsgListener("    Pong received.")
             else:
                 self.notifyMsgListener(
@@ -478,7 +478,7 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
                 if newAvailableClaims:
                     li.availableClaims.extend(newAvailableClaims)
                     claimNames = ", ".join(
-                        [n for n, _, _ in newAvailableClaims])
+                        sorted([n for n, _, _ in newAvailableClaims]))
                     self.notifyMsgListener(
                         "    Available Claim(s): {}\n".format(claimNames))
 
@@ -503,8 +503,8 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
         if li:
             rcvdAvailableClaims = body[DATA][CLAIMS_LIST_FIELD]
             if len(rcvdAvailableClaims) > 0:
-                self.notifyMsgListener("    Available Claim(s): {}". format(
-                    ",".join([rc.get(NAME) for rc in rcvdAvailableClaims])))
+                self.notifyMsgListener("    Available Claim(s): {}".format(
+                    ",".join(sorted([rc.get(NAME) for rc in rcvdAvailableClaims]))))
             else:
                 self.notifyMsgListener("    Available Claim(s): "
                                        "No available claims found")
@@ -530,7 +530,7 @@ class Walleted(AgentIssuer, AgentProver, AgentVerifier):
                 if newAvailableClaims:
                     li.availableClaims.extend(newAvailableClaims)
                     self.notifyMsgListener("    Available Claim(s): {}". format(
-                        ",".join([rc.get(NAME) for rc in rcvdAvailableClaims])))
+                        ",".join(sorted([rc.get(NAME) for rc in rcvdAvailableClaims]))))
                 try:
                     self._checkIfLinkIdentifierWrittenToIndy(
                         li, newAvailableClaims)

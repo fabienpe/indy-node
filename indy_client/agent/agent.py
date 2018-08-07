@@ -189,7 +189,7 @@ def createAgent(agentClass, name, wallet=None, basedirpath=None, port=None,
                       loop=loop)
 
 
-def create_client(base_dir_path=None, client_class=Client):
+def create_client(base_dir_path: str = None, client_class=Client, sighex: str = None):
     config = getConfig()
 
     if not base_dir_path:
@@ -198,5 +198,6 @@ def create_client(base_dir_path=None, client_class=Client):
     _, clientPort = genHa()
     client = client_class(randomString(6),
                           ha=("0.0.0.0", clientPort),
-                          basedirpath=base_dir_path)
+                          basedirpath=base_dir_path,
+                          sighex=sighex)
     return client

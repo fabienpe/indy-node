@@ -97,7 +97,7 @@ controlServicePort = "30003"
 '''
 logging level for agents
 '''
-agentLoggingLevel = logging.INFO
+agentLoggingLevel = logging.DEBUG
 '''
 default logging level for node
 '''

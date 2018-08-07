@@ -60,7 +60,7 @@ def create_local_pool(node_base_dir, cli_base_dir, config=None, node_size=4):
 
     pool.runFor(5)
 
-    return pool
+    return pool, stewards
 
 
 class LocalPool(Pool, Looper):
@@ -86,8 +86,10 @@ class LocalPool(Pool, Looper):
     def genesis_transactions(self):
         return self.genesis_txns
 
-    def create_client(self, port: int):
-        return Client(name=randomString(6),
+    def create_client(self, port: int, name: str = None):
+        if not name:
+            name = randomString(6)
+        return Client(name=name,
                       basedirpath=self.base_dir,
                       ha=('127.0.0.1', port))
 
