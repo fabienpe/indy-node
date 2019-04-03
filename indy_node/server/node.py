@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from typing import Iterable, List
 
+from common.exceptions import LogicError
 from common.serializers.serialization import ledger_txn_serializer, domain_state_serializer
 from indy_common.authorize.auth_constraints import ConstraintsSerializer, AbstractConstraintSerializer
 from indy_common.authorize.auth_map import auth_map, anyone_can_write_map
@@ -234,6 +235,18 @@ class Node(PlenumNode):
         super().postConfigLedgerCaughtUp(**kwargs)
         self.acknowledge_upgrade()
 
+    def preLedgerCatchUp(self, ledger_id):
+        super().preLedgerCatchUp(ledger_id)
+
+        if len(self.idrCache.un_committed) > 0:
+            raise LogicError('{} idr cache has uncommitted txns before catching up ledger {}'.format(self, ledger_id))
+
+    def postLedgerCatchUp(self, ledger_id):
+        if len(self.idrCache.un_committed) > 0:
+            raise LogicError('{} idr cache has uncommitted txns after catching up ledger {}'.format(self, ledger_id))
+
+        super().postLedgerCatchUp(ledger_id)
+
     def acknowledge_upgrade(self):
         if not self.upgrader.should_notify_about_upgrade_result():
             return
@@ -330,16 +343,14 @@ class Node(PlenumNode):
                                                          POOL_CONFIG,
                                                          AUTH_RULE]
 
-    def execute_domain_txns(self, ppTime, reqs: List[Request], stateRoot,
-                            txnRoot) -> List:
+    def execute_domain_txns(self, three_pc_batch) -> List:
         """
         Execute the REQUEST sent to this Node
 
         :param ppTime: the time at which PRE-PREPARE was sent
         :param req: the client REQUEST
         """
-        return self.default_executer(DOMAIN_LEDGER_ID, ppTime, reqs,
-                                     stateRoot, txnRoot)
+        return self.default_executer(three_pc_batch)
 
     def update_txn_with_extra_data(self, txn):
         """
