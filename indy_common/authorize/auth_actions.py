@@ -8,7 +8,7 @@ RULE_DELIMETER = "--"
 ADD_PREFIX = "ADD"
 EDIT_PREFIX = "EDIT"
 
-ActionDef = NamedTuple('ActionDef', [('prefix', str), ('txn_type', str), ('field', str), ('old_value', str), ('new_value', str)])
+ActionDef = NamedTuple('ActionDef', [('txn_type', str), ('prefix', str), ('field', str), ('old_value', str), ('new_value', str)])
 
 
 def compile_action_id(txn_type,
@@ -16,8 +16,8 @@ def compile_action_id(txn_type,
                       old_value,
                       new_value,
                       prefix='') -> str:
-    return RULE_DELIMETER.join([prefix,
-                                txn_type,
+    return RULE_DELIMETER.join([txn_type,
+                                prefix,
                                 field,
                                 old_value,
                                 new_value])
@@ -47,7 +47,7 @@ class AuthActionAdd(AbstractAuthAction):
     def __init__(self, txn_type, field=None, value=None, is_owner: bool=True):
         self.txn_type = txn_type
         self.field = str(field) if field is not None else ''
-        self.value = str(value) if value else ''
+        self.value = str(value) if value is not None else ''
         self.is_owner = is_owner
 
     def get_action_id(self) -> str:
