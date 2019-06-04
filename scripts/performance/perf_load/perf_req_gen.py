@@ -1,7 +1,9 @@
+import logging
 from abc import ABCMeta, abstractmethod
 import json
 import random
 
+from indy import ledger
 from perf_load.perf_clientstaistic import ClientStatistic
 from perf_load.perf_utils import check_fs, random_string, get_type_field
 
@@ -17,6 +19,7 @@ class RequestGenerator(metaclass=ABCMeta):
                  file_name: str = None, ignore_first_line: bool = True,
                  file_sep: str = "|", file_max_split: int = 2, file_field: int = 2,
                  client_stat: ClientStatistic = None, **kwargs):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self._test_label = label
         self._client_stat = client_stat
         if not isinstance(self._client_stat, ClientStatistic):
@@ -32,12 +35,19 @@ class RequestGenerator(metaclass=ABCMeta):
             if ignore_first_line:
                 self._data_file.readline()
                 self._file_start_pos = self._data_file.tell()
+        self._taa_text = None
+        self._taa_version = None
+        self._taa_mechanism = None
+        self._taa_time = None
 
     def get_label(self):
         return self._test_label
 
     async def on_pool_create(self, pool_handle, wallet_handle, submitter_did, sign_req_f, send_req_f, *args, **kwargs):
-        pass
+        self._taa_text = kwargs.get("taa_text", "")
+        self._taa_version = kwargs.get("taa_version", "")
+        self._taa_mechanism = kwargs.get("taa_mechanism", "")
+        self._taa_time = kwargs.get("taa_time", 0)
 
     def _rand_data(self):
         return random_string(32)
@@ -64,6 +74,13 @@ class RequestGenerator(metaclass=ABCMeta):
                     return tmp
         else:
             return self._rand_data()
+
+    async def _append_taa_acceptance(self, req):
+        if self._taa_text == "":
+            return req
+
+        return await ledger.append_txn_author_agreement_acceptance_to_request(
+            req, self._taa_text, self._taa_version, None, self._taa_mechanism, self._taa_time)
 
     @abstractmethod
     async def _gen_req(self, submit_did, req_data):

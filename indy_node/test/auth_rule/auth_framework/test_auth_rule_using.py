@@ -3,26 +3,18 @@ import pytest
 from datetime import datetime, timedelta
 from collections import OrderedDict
 
-from indy_node.test.auth_rule.auth_framework.auth_rules import AuthRuleTest
-from indy_node.test.auth_rule.auth_framework.node_services import AddNewNodeTest, AddNewNodeEmptyServiceTest, \
-    DemoteNodeTest, PromoteNodeTest
-from indy_node.test.auth_rule.auth_framework.node_properties import EditNodeIpTest, EditNodePortTest, \
-    EditNodeClientIpTest, EditNodeClientPortTest, EditNodeBlsTest
-from indy_node.test.auth_rule.auth_framework.pool_config import PoolConfigTest
-from indy_node.test.auth_rule.auth_framework.restart import RestartTest
-from indy_node.test.auth_rule.auth_framework.revoc_reg_def import AddRevocRegDefTest, \
-    EditRevocRegDefTest
-from indy_node.test.auth_rule.auth_framework.revoc_reg_entry import AddRevocRegEntryTest, EditRevocRegEntryTest
-from indy_node.test.auth_rule.auth_framework.txn_author_agreement import TxnAuthorAgreementTest
-from indy_node.test.auth_rule.auth_framework.txn_author_agreement_aml import TxnAuthorAgreementAMLTest
-from indy_node.test.auth_rule.auth_framework.validator_info import ValidatorInfoTest
-from indy_node.test.pool_config.conftest import poolConfigWTFF
-from indy_node.test.upgrade.conftest import patch_packet_mgr_output, EXT_PKT_NAME, EXT_PKT_VERSION
+from plenum.common.constants import STEWARD, TRUSTEE, IDENTITY_OWNER
 
-from indy_common.authorize.auth_constraints import IDENTITY_OWNER
-from indy_common.constants import TRUST_ANCHOR, START
+from indy_common.constants import (
+    TRUST_ANCHOR, START, NETWORK_MONITOR, NETWORK_MONITOR_STRING
+)
+from indy_common.authorize import auth_map
+
+from plenum.test.helper import randomText
+from plenum.test.pool_transactions.helper import sdk_add_new_nym
+from plenum.test.testing_utils import FakeSomething
+
 from indy_node.test.auth_rule.auth_framework.claim_def import AddClaimDefTest, EditClaimDefTest
-from indy_common.constants import TRUST_ANCHOR, NETWORK_MONITOR, NETWORK_MONITOR_STRING
 from indy_node.test.auth_rule.auth_framework.add_roles import AddNewTrusteeTest, AddNewStewardTest, \
     AddNewTrustAnchorTest, AddNewNetworkMonitorTest, AddNewIdentityOwnerTest
 from indy_node.test.auth_rule.auth_framework.edit_roles import EditTrusteeToStewardTest, \
@@ -38,12 +30,23 @@ from indy_node.test.auth_rule.auth_framework.key_rotation import RotateKeyTest
 from indy_node.test.auth_rule.auth_framework.schema import SchemaTest
 from indy_node.test.auth_rule.auth_framework.upgrade import StartUpgradeTest, CancelUpgradeTest
 from indy_node.test.upgrade.helper import bumpedVersion
-from plenum.common.constants import STEWARD, TRUSTEE, \
-    IDENTITY_OWNER
-from indy_common.authorize import auth_map
-from plenum.test.helper import randomText
-from plenum.test.pool_transactions.helper import sdk_add_new_nym
-from plenum.test.testing_utils import FakeSomething
+from indy_node.test.auth_rule.auth_framework.add_attrib import AddAttribTest
+from indy_node.test.auth_rule.auth_framework.auth_rules import AuthRuleTest
+from indy_node.test.auth_rule.auth_framework.edit_attrib import EditAttribTest
+from indy_node.test.auth_rule.auth_framework.node_services import AddNewNodeTest, AddNewNodeEmptyServiceTest, \
+    DemoteNodeTest, PromoteNodeTest
+from indy_node.test.auth_rule.auth_framework.node_properties import EditNodeIpTest, EditNodePortTest, \
+    EditNodeClientIpTest, EditNodeClientPortTest, EditNodeBlsTest
+from indy_node.test.auth_rule.auth_framework.pool_config import PoolConfigTest
+from indy_node.test.auth_rule.auth_framework.restart import RestartTest
+from indy_node.test.auth_rule.auth_framework.revoc_reg_def import AddRevocRegDefTest, \
+    EditRevocRegDefTest
+from indy_node.test.auth_rule.auth_framework.revoc_reg_entry import AddRevocRegEntryTest, EditRevocRegEntryTest
+from indy_node.test.auth_rule.auth_framework.txn_author_agreement import TxnAuthorAgreementTest
+from indy_node.test.auth_rule.auth_framework.txn_author_agreement_aml import TxnAuthorAgreementAMLTest
+from indy_node.test.auth_rule.auth_framework.validator_info import ValidatorInfoTest
+from indy_node.test.pool_config.conftest import poolConfigWTFF
+from indy_node.test.upgrade.conftest import patch_packet_mgr_output, EXT_PKT_NAME, EXT_PKT_VERSION
 
 
 nodeCount = 7
@@ -65,6 +68,8 @@ class TestAuthRuleUsing():
         auth_map.add_new_trust_anchor.get_action_id(): AddNewTrustAnchorTest,
         auth_map.add_new_network_monitor.get_action_id(): AddNewNetworkMonitorTest,
         auth_map.add_new_identity_owner.get_action_id(): AddNewIdentityOwnerTest,
+        auth_map.add_attrib.get_action_id(): AddAttribTest,
+        auth_map.edit_attrib.get_action_id(): EditAttribTest,
         auth_map.add_revoc_reg_def.get_action_id(): AddRevocRegDefTest,
         auth_map.edit_revoc_reg_def.get_action_id(): EditRevocRegDefTest,
         auth_map.add_revoc_reg_entry.get_action_id(): AddRevocRegEntryTest,
@@ -143,7 +148,7 @@ class TestAuthRuleUsing():
         return sdk_add_new_nym(looper, sdk_pool_handle, sdk_wallet_trustee,
                                alias='NM-1', role=NETWORK_MONITOR_STRING)
 
-    @pytest.fixture(scope="module")
+    @pytest.fixture(scope="module")  # noqa: F811
     def env(self,
             looper,
             tconf,
