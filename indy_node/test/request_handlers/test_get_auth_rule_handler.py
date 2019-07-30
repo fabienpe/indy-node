@@ -4,12 +4,11 @@ from indy_common.authorize.auth_actions import EDIT_PREFIX, ADD_PREFIX
 from indy_common.authorize.auth_constraints import AuthConstraintOr
 from indy_common.authorize.auth_map import auth_map
 
-from indy_common.constants import NYM, AUTH_RULE, OLD_VALUE, AUTH_TYPE, ROLE, TRUST_ANCHOR, CONSTRAINT, AUTH_ACTION, \
+from indy_common.constants import NYM, AUTH_RULE, OLD_VALUE, AUTH_TYPE, ROLE, ENDORSER, CONSTRAINT, AUTH_ACTION, \
     GET_AUTH_RULE
 
 from indy_node.server.request_handlers.read_req_handlers.get_auth_rule_handler import GetAuthRuleHandler
 from indy_node.test.auth_rule.helper import generate_auth_rule_operation, generate_key
-from indy_common.test.auth.conftest import write_auth_req_validator
 from indy_node.test.request_handlers.helper import add_to_idr, get_exception
 from plenum.common.constants import STEWARD, TRUSTEE, TXN_TYPE
 from plenum.common.exceptions import InvalidClientRequest, UnauthorizedClientRequest
@@ -79,7 +78,7 @@ def test_auth_rule_static_validation_failed_with_incorrect_key(get_auth_rule_req
     get_auth_rule_request.operation.update(generate_key(auth_action=EDIT_PREFIX,
                                                         auth_type="wrong_type",
                                                         field=ROLE,
-                                                        new_value=TRUST_ANCHOR,
+                                                        new_value=ENDORSER,
                                                         old_value="*"))
     with pytest.raises(InvalidClientRequest, match="is not found in authorization map"):
         get_auth_rule_handler.static_validation(get_auth_rule_request)

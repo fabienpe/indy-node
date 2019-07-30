@@ -1,5 +1,7 @@
 # Hyperledger Indy Node Release Notes
 
+* [1.9.0](#190)
+
 * [1.8.1](#181)
 
 * [1.8.0](#180)
@@ -41,6 +43,55 @@
 #### Disclosure
 
 Although every attempt has been made to make this information as accurate as possible, please know there may be things that are omitted, not fully developed yet, or updates since this publication that were not included in the information below. Only the most pressing or significant items have been listed. For the entire list of tickets and or specific information about any given item, please visit the list at [Hyperleder Indy's Jira](https://jira.hyperledger.org/). Once logged in, simply navigate to Projects > Indy.
+
+## 1.9.0
+### Release date: July 04th, 2019
+
+### Component Version Information
+| Components | Version Numbers |
+| --- | --- |
+| indy-plenum | 1.9.0 |
+| indy-node | 1.9.0 |
+| sovrin | 1.1.50 |
+
+### Additional Information:
+**There are possible OOM issues during 3+ hours of target load or large catch-ups at 8 GB RAM nodes pool so 32 GB is recommended.**
+**Some nodes can fail to send a REJECT or REPLY to client under specific network conditions. See Know Issues for more details.**
+
+### Major Changes
+- Pluggable Request Handlers have been implemented 
+
+### Detailed Changelog
+
+#### Major Fixes
+| Description | Additional Information | Ticket Number |
+| --- | --- | --- |
+| Propagates with invalid requests can lead to node crashes | | [INDY-2144](https://jira.hyperledger.org/browse/INDY-2144)  |
+| There is no validation of the ISSUANCE_TYPE field for the transaction REVOC_REG_DEF | | [INDY-2142](https://jira.hyperledger.org/browse/INDY-2142) |
+| Reduce CONS_PROOF timeout to speed up catchup under the load | | [INDY-2083](https://jira.hyperledger.org/browse/INDY-2083) |
+
+#### Changes and Additions
+| Description | Additional Information | Ticket Number |
+| --- | --- | --- |
+| As a Trustee(s), I need to have a way to set multiple AUTH_RULES by one command | | [INDY-2087](https://jira.hyperledger.org/browse/INDY-2087) |
+| Make more system tests to be ready for Indy Node CD pipeline | | [INDY-2127](https://jira.hyperledger.org/browse/INDY-2127) |
+| Integrate new handlers into the codebase | | [INDY-1861](https://jira.hyperledger.org/browse/INDY-1861) |
+| Define Interfaces needed for View Change Service | | [INDY-1338](https://jira.hyperledger.org/browse/INDY-1338) |
+| Rename TRUST_ANCHOR to ENDORSER | | [INDY-1950](https://jira.hyperledger.org/browse/INDY-1950) |
+| Update PBFT view change plan of attack | | [INDY-2134](https://jira.hyperledger.org/browse/INDY-2134) |
+| Apply a new Docker-in-docker approach for system tests | | [INDY-2131](https://jira.hyperledger.org/browse/INDY-2131) |
+| More tests for pluggable request handlers | | [INDY-2108](https://jira.hyperledger.org/browse/INDY-2108) |
+| Remove ANYONE_CAN_WRITE | | [INDY-1956](https://jira.hyperledger.org/browse/INDY-1956) |
+| [Design] ViewChange protocol must be as defined in PBFT | | [INDY-1290](https://jira.hyperledger.org/browse/INDY-1290) |
+| Batch containing some already executed requests should be applied correctly | | [INDY-1405](https://jira.hyperledger.org/browse/INDY-1405) |
+| Update Pluggable Req Handlers | | [INDY-2097](https://jira.hyperledger.org/browse/INDY-2097) |
+| As a Network Admin, I need to be able to forbid an action in AUTH_RULE, so that no changes in code are needed | | [INDY-2077](https://jira.hyperledger.org/browse/INDY-2077) |
+| Create Builders for handlers | | [INDY-1860](https://jira.hyperledger.org/browse/INDY-1860) |
+
+#### Known Issues
+| Description | Additional Information | Ticket Number |
+| --- | --- | --- |
+| Incorrect request validation || [INDY-2164](https://jira.hyperledger.org/browse/INDY-2164) |
 
 ## 1.8.1
 ### Release date: June 06th, 2019
@@ -211,7 +262,7 @@ Although every attempt has been made to make this information as accurate as pos
 | There should always be fresh enough signature of a state |  | [INDY-933](https://jira.hyperledger.org/browse/INDY-933) |
 | Node stops working without any services failure |  | [INDY-1949](https://jira.hyperledger.org/browse/INDY-1949) |
 | As a user of Valdiator Info script, I need to know whether the pool has write consensus and when the state was updated the last time |  | [INDY-1928](https://jira.hyperledger.org/browse/INDY-1928) |
-| Trust anchor permission not needed for ledger writes |  | [INDY-1528](https://jira.hyperledger.org/browse/INDY-1528) |
+| Endorser permission not needed for ledger writes |  | [INDY-1528](https://jira.hyperledger.org/browse/INDY-1528) |
 
 ## 1.6.82 
 ### Release date: Dec 24th, 2018
@@ -492,7 +543,7 @@ No further action is required
 | Updated revocation registry delta value during REG\_ENTRY\_REVOC writing. |   | [INDY-1378](https://jira.hyperledger.org/browse/INDY-1378) |
 | Support latest SDK in Indy Plenum and Node. |   | [INDY-1480](https://jira.hyperledger.org/browse/INDY-1480) |
 | Latency measurements in monitor are windowed. |   | [INDY-1468](https://jira.hyperledger.org/browse/INDY-1468) |
-| Trust anchor permissions are not needed for ledger writes. |   | [INDY-1528](https://jira.hyperledger.org/browse/INDY-1528) |
+| Endorser permissions are not needed for ledger writes. |   | [INDY-1528](https://jira.hyperledger.org/browse/INDY-1528) |
 |   |   |   |
 | **Known Issue:** Docker pool can&#39;t be built because of new python3-indy-crypto in sdk repo. The problem described in INDY-1517 will be fixed in the next release of indy-node. | Workaround for this problem is to add python3-indy-crypto=0.4.1 to the list of packages to be installed. | [INDY-1517](https://jira.hyperledger.org/browse/INDY-1517) |
 | **Known Issue:** Upgrade failed on pool from 1.3.62 to 1.4.66. Note that INDY-1447 was fixed in indy-node 1.5.68, but it still presents in indy-node 1.3.62 and 1.4.66 code. | **So, some of the nodes may not to be upgraded during simultaneous pool-upgrade.** If this problem will appear, stewards should perform manual upgrade of indy-node in accordance with this [instruction:](https://docs.google.com/document/d/1vUvbioL5OsmZMSkwRcu0p0jdttJO5VS8K3GhDLdNaoI)**(!)** To reduce the risk of reproducing INDY-1447, it is **recommended to use old CLI for pool upgrade.** | [INDY-1447](https://jira.hyperledger.org/browse/INDY-1447) |

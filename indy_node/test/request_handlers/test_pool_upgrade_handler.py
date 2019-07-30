@@ -26,11 +26,11 @@ def pool_upgrade_request():
 
 
 @pytest.fixture(scope='function')
-def pool_upgrade_handler():
+def pool_upgrade_handler(write_auth_req_validator):
     return PoolUpgradeHandler(
         None,
         FakeSomething(check_upgrade_possible=Upgrader.check_upgrade_possible),
-        FakeSomething(),
+        write_auth_req_validator,
         FakeSomething()
     )
 

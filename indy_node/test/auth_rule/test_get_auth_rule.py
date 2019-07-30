@@ -2,6 +2,7 @@ import pytest
 
 from indy_common.state import config
 from indy_common.types import AuthRuleField
+from indy_node.server.request_handlers.config_req_handlers.auth_rule.static_auth_rule_helper import StaticAuthRuleHelper
 from plenum.common.types import OPERATION
 from plenum.common.constants import TXN_TYPE, TRUSTEE, STEWARD, DATA, STATE_PROOF
 from plenum.common.exceptions import RequestNackedException
@@ -9,9 +10,8 @@ from plenum.common.exceptions import RequestNackedException
 from indy_common.authorize.auth_actions import ADD_PREFIX, EDIT_PREFIX
 from indy_common.authorize.auth_constraints import ROLE, AuthConstraintForbidden
 from indy_common.authorize.auth_map import auth_map
-from indy_common.constants import NYM, TRUST_ANCHOR, AUTH_ACTION, AUTH_TYPE, FIELD, NEW_VALUE, \
+from indy_common.constants import NYM, ENDORSER, AUTH_ACTION, AUTH_TYPE, FIELD, NEW_VALUE, \
     OLD_VALUE, SCHEMA, CONSTRAINT, AUTH_RULE
-from indy_node.server.config_req_handler import ConfigReqHandler
 
 from plenum.test.helper import (
     sdk_gen_request, sdk_sign_and_submit_req, sdk_get_and_check_replies,
@@ -59,7 +59,7 @@ def test_get_one_auth_rule_transaction(looper,
                                        sdk_wallet_trustee,
                                        sdk_pool_handle):
     key = generate_key()
-    str_key = ConfigReqHandler.get_auth_key(key)
+    str_key = StaticAuthRuleHelper.get_auth_key(key)
     req, resp = sdk_send_and_check_get_auth_rule_request(
         looper, sdk_pool_handle, sdk_wallet_trustee, **key
     )[0]
@@ -109,7 +109,7 @@ def test_get_all_auth_rule_transactions(looper,
     result = resp[0][1]["result"][DATA]
     for i, (auth_key, constraint) in enumerate(auth_map.items()):
         rule = result[i]
-        assert auth_key == ConfigReqHandler.get_auth_key(rule)
+        assert auth_key == StaticAuthRuleHelper.get_auth_key(rule)
         if constraint is None:
             assert {} == rule[CONSTRAINT]
         else:
@@ -122,7 +122,7 @@ def test_get_one_auth_rule_transaction_after_write(looper,
     auth_action = ADD_PREFIX
     auth_type = NYM
     field = ROLE
-    new_value = TRUST_ANCHOR
+    new_value = ENDORSER
     constraint = generate_constraint_list(auth_constraints=[generate_constraint_entity(role=TRUSTEE),
                                                             generate_constraint_entity(role=STEWARD)])
     resp = sdk_send_and_check_auth_rule_request(looper,
@@ -149,7 +149,7 @@ def test_get_all_auth_rule_transactions_after_write(looper,
     auth_action = ADD_PREFIX
     auth_type = NYM
     field = ROLE
-    new_value = TRUST_ANCHOR
+    new_value = ENDORSER
     constraint = generate_constraint_list(auth_constraints=[generate_constraint_entity(role=TRUSTEE),
                                                             generate_constraint_entity(role=STEWARD)])
     resp = sdk_send_and_check_auth_rule_request(looper,
@@ -160,14 +160,14 @@ def test_get_all_auth_rule_transactions_after_write(looper,
                                                 field=field,
                                                 new_value=new_value,
                                                 constraint=constraint)
-    str_auth_key = ConfigReqHandler.get_auth_key(resp[0][0][OPERATION])
+    str_auth_key = StaticAuthRuleHelper.get_auth_key(resp[0][0][OPERATION])
     resp = sdk_send_and_check_get_auth_rule_request(
         looper, sdk_pool_handle, sdk_wallet_trustee
     )
 
     result = resp[0][1]["result"][DATA]
     for rule in result:
-        key = ConfigReqHandler.get_auth_key(rule)
+        key = StaticAuthRuleHelper.get_auth_key(rule)
         if key == str_auth_key:
             assert constraint == rule[CONSTRAINT]
         else:

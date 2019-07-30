@@ -102,11 +102,10 @@ def add_revoc_def_by_default(create_node_and_not_start,
     }
     req = sdk_sign_request_from_dict(looper, sdk_wallet_steward, data)
 
-    req_handler = node.get_req_handler(DOMAIN_LEDGER_ID)
     txn = append_txn_metadata(reqToTxn(Request(**req)),
                               txn_time=int(time.time()),
                               seq_no=node.domainLedger.seqNo + 1)
-    req_handler._addRevocDef(txn)
+    node.write_manager.update_state(txn)
     return req
 
 
@@ -162,11 +161,10 @@ def add_revoc_def_by_demand(create_node_and_not_start,
     }
     req = sdk_sign_request_from_dict(looper, sdk_wallet_steward, data)
 
-    req_handler = node.get_req_handler(DOMAIN_LEDGER_ID)
     txn = append_txn_metadata(reqToTxn(Request(**req)),
                               txn_time=int(time.time()),
                               seq_no=node.domainLedger.seqNo + 1)
-    req_handler._addRevocDef(txn)
+    node.write_manager.update_state(txn)
     return req
 
 
@@ -216,7 +214,7 @@ def build_revoc_def_by_default(looper, sdk_wallet_steward):
 
 
 @pytest.fixture(scope="module")
-def build_revoc_def_by_trust_anchor(looper, sdk_wallet_trust_anchor):
+def build_revoc_def_by_endorser(looper, sdk_wallet_endorser):
     data = {
         ID: randomString(50),
         TXN_TYPE: REVOC_REG_DEF,
@@ -231,7 +229,7 @@ def build_revoc_def_by_trust_anchor(looper, sdk_wallet_trust_anchor):
             PUBLIC_KEYS: {},
         }
     }
-    req = sdk_sign_request_from_dict(looper, sdk_wallet_trust_anchor, data)
+    req = sdk_sign_request_from_dict(looper, sdk_wallet_endorser, data)
     return req
 
 

@@ -10,13 +10,14 @@ from libnacl import randombytes
 
 from indy_common.authorize.auth_actions import ADD_PREFIX, EDIT_PREFIX
 from indy_common.authorize.auth_constraints import ROLE, CONSTRAINT_ID, ConstraintsEnum, SIG_COUNT, NEED_TO_BE_OWNER, \
-    METADATA
+    METADATA, OFF_LEDGER_SIGNATURE
 from indy_common.config_helper import NodeConfigHelper
-from indy_common.constants import NYM, TRUST_ANCHOR, CONSTRAINT, AUTH_ACTION, AUTH_TYPE, FIELD, NEW_VALUE, OLD_VALUE
+from indy_common.constants import NYM, ENDORSER, CONSTRAINT, AUTH_ACTION, AUTH_TYPE, FIELD, NEW_VALUE, OLD_VALUE
 from indy_node.server.node_bootstrap import NodeBootstrap
 from plenum.common.constants import TRUSTEE
 from plenum.common.signer_did import DidSigner
 from plenum.common.signer_simple import SimpleSigner
+from plenum.common.types import OPERATION
 from plenum.common.util import rawToFriendly
 from plenum.test.pool_transactions.helper import sdk_sign_and_send_prepared_request, sdk_add_new_nym
 from stp_core.common.log import getlogger
@@ -61,8 +62,10 @@ class TestNode(TempStorage, TestNodeCore, Node):
         from plenum.common.stacks import nodeStackClass, clientStackClass
         self.NodeStackClass = nodeStackClass
         self.ClientStackClass = clientStackClass
+        if kwargs.get('bootstrap_cls', None) is None:
+            kwargs['bootstrap_cls'] = TestNodeBootstrap
 
-        Node.__init__(self, *args, **kwargs, bootstrap_cls=TestNodeBootstrap)
+        Node.__init__(self, *args, **kwargs)
         TestNodeCore.__init__(self, *args, **kwargs)
         self.cleanupOnStopping = True
 
@@ -180,6 +183,13 @@ def sdk_send_and_check_auth_rule_request(
         new_value=new_value,
         constraint=constraint
     )
+
+    # temp fix untill new sdk released
+    req_json = json.loads(req_json)
+    if req_json[OPERATION][CONSTRAINT][CONSTRAINT_ID] == 'ROLE':
+        req_json[OPERATION][CONSTRAINT][OFF_LEDGER_SIGNATURE] = constraint[OFF_LEDGER_SIGNATURE]
+    req_json = json.dumps(req_json)
+
     return sdk_send_and_check_req_json(
         looper, sdk_pool_handle, sdk_wallet, req_json, no_wait=no_wait
     )
@@ -189,9 +199,9 @@ def sdk_send_and_check_auth_rules_request(looper, sdk_pool_handle,
                                           sdk_wallet, rules=None, no_wait=False):
     if rules is None:
         rules = [generate_auth_rule(ADD_PREFIX, NYM,
-                                    ROLE, TRUST_ANCHOR),
+                                    ROLE, ENDORSER),
                  generate_auth_rule(EDIT_PREFIX, NYM,
-                                    ROLE, TRUST_ANCHOR, TRUSTEE)]
+                                    ROLE, ENDORSER, TRUSTEE)]
     req_json = looper.loop.run_until_complete(
         build_auth_rules_request(submitter_did=sdk_wallet[1], data=json.dumps(rules)))
     return sdk_send_and_check_req_json(
@@ -221,7 +231,7 @@ def sdk_send_and_check_get_auth_rule_request(
 
 
 def generate_auth_rule(auth_action=ADD_PREFIX, auth_type=NYM,
-                       field=ROLE, new_value=TRUST_ANCHOR,
+                       field=ROLE, new_value=ENDORSER,
                        old_value=None, constraint=None):
     if constraint is None:
         constraint = generate_constraint_entity()
@@ -240,11 +250,13 @@ def generate_constraint_entity(constraint_id=ConstraintsEnum.ROLE_CONSTRAINT_ID,
                                role=TRUSTEE,
                                sig_count=1,
                                need_to_be_owner=False,
+                               off_ledger_signature=False,
                                metadata={}):
     return {CONSTRAINT_ID: constraint_id,
             ROLE: role,
             SIG_COUNT: sig_count,
             NEED_TO_BE_OWNER: need_to_be_owner,
+            OFF_LEDGER_SIGNATURE: off_ledger_signature,
             METADATA: metadata}
 
 
